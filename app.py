@@ -3,7 +3,7 @@ import numpy as np
 from PIL import Image
 import json
 import os
-import tensorflow as tf
+import tflite_runtime.interpreter as tflite   # ✅ CORRECT
 
 app = Flask(__name__)
 
@@ -15,7 +15,7 @@ LABELS_PATH = 'class_indices.json'
 if not os.path.exists(MODEL_PATH):
     raise FileNotFoundError(f"❌ Model not found: {MODEL_PATH}")
 
-interpreter = tf.lite.Interpreter(model_path=MODEL_PATH)
+interpreter = tflite.Interpreter(model_path=MODEL_PATH)
 interpreter.allocate_tensors()
 
 input_details = interpreter.get_input_details()
@@ -54,7 +54,7 @@ def predict():
         img = Image.open(file).convert('RGB')
         processed = preprocess_image(img)
 
-        # ✅ TFLite prediction
+        # ✅ TFLite inference
         interpreter.set_tensor(input_details[0]['index'], processed)
         interpreter.invoke()
         prediction = interpreter.get_tensor(output_details[0]['index'])
