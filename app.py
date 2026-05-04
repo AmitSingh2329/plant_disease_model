@@ -62,6 +62,13 @@ def predict():
         predicted_class = int(np.argmax(prediction))
         confidence = float(np.max(prediction))
 
+        # 🔥 IMPORTANT: Confidence threshold
+        if confidence < 0.6:
+            return jsonify({
+                'error': '⚠️ Please upload a valid plant leaf image',
+                'confidence': round(confidence, 4)
+            }), 200
+
         disease_name = labels.get(predicted_class, "Unknown Disease")
         disease_name = disease_name.replace("___", " - ").replace("_", " ")
 
@@ -73,7 +80,6 @@ def predict():
     except Exception as e:
         print("❌ Prediction Error:", str(e))
         return jsonify({'error': 'Prediction failed'}), 500
-
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8000)
