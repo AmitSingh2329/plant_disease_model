@@ -63,7 +63,7 @@ def predict():
         confidence = float(np.max(prediction))
 
         # 🔥 IMPORTANT: Confidence threshold
-        if confidence < 0.6:
+        if confidence < 0.3:
             return jsonify({
                 'error': '⚠️ Please upload a valid plant leaf image',
                 'confidence': round(confidence, 4)
@@ -76,7 +76,6 @@ def predict():
             'disease': disease_name,
             'confidence': round(confidence, 4)
         })
-
     except Exception as e:
         print("❌ Prediction Error:", str(e))
         return jsonify({'error': 'Prediction failed'}), 500
