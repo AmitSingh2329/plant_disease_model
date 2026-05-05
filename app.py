@@ -7,7 +7,15 @@ import os
 import tflite_runtime.interpreter as tflite   # ✅ CORRECT
 
 app = Flask(__name__)
-CORS(app)
+CORS(
+    app,
+    supports_credentials=True,
+    resources={
+        r"/*": {
+            "origins": ["https://demo2-three-topaz.vercel.app"]
+        }
+    }
+)
 
 # ✅ Paths
 MODEL_PATH = 'model.tflite'
