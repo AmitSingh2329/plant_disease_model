@@ -42,6 +42,12 @@ def home():
     return "ML API is running 🚀"
 
 
+# ✅ Health check (used by frontend warm-up)
+@app.route('/health')
+def health():
+    return jsonify({"status": "ok"}), 200
+
+
 # ✅ Prediction route
 @app.route('/predict', methods=['POST'])
 def predict():
