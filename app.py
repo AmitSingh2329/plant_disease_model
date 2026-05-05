@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import numpy as np
 from PIL import Image
 import json
@@ -6,6 +7,7 @@ import os
 import tflite_runtime.interpreter as tflite   # ✅ CORRECT
 
 app = Flask(__name__)
+CORS(app)
 
 # ✅ Paths
 MODEL_PATH = 'model.tflite'
