@@ -100,7 +100,6 @@
 #     app.run(host='0.0.0.0', port=8000)
 
 
-
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import numpy as np
@@ -111,9 +110,12 @@ import io
 import tflite_runtime.interpreter as tflite
 import google.generativeai as genai
 
+# =========================================================
+# ✅ Flask App
+# =========================================================
+
 app = Flask(__name__)
 
-# ✅ CORS
 CORS(
     app,
     supports_credentials=True,
@@ -135,13 +137,15 @@ GEMINI_API_KEY = "AIzaSyBxxRwH5R2SPUuoVPgXdlUH7ibFzqPhnFc"
 
 genai.configure(api_key=GEMINI_API_KEY)
 
-gemini_model = genai.GenerativeModel("gemini-1.5-flash")
+# ✅ Stable working vision model
+gemini_model = genai.GenerativeModel("models/gemini-pro-vision")
+
 # =========================================================
 # ✅ Paths
 # =========================================================
 
-MODEL_PATH = 'model.tflite'
-LABELS_PATH = 'class_indices.json'
+MODEL_PATH = "model.tflite"
+LABELS_PATH = "class_indices.json"
 
 # =========================================================
 # ✅ Load TFLite Model
@@ -170,20 +174,24 @@ labels = {v: k for k, v in class_indices.items()}
 # =========================================================
 
 def preprocess_image(img):
+
     img = img.resize((224, 224))
+
     img = np.array(img) / 255.0
+
     img = np.expand_dims(img, axis=0)
-    return img.astype('float32')
+
+    return img.astype("float32")
 
 # =========================================================
 # ✅ Health Routes
 # =========================================================
 
-@app.route('/')
+@app.route("/")
 def home():
     return "ML API is running 🚀"
 
-@app.route('/health')
+@app.route("/health")
 def health():
     return jsonify({"status": "ok"}), 200
 
@@ -195,24 +203,20 @@ def detect_with_gemini(image_bytes):
 
     prompt = """
     Identify the plant disease from this leaf image.
-    
+
     Return:
     1. Disease Name
     2. Possible Cause
     3. Suggested Treatment
-    
-    If the image is not a plant leaf, say:
+
+    If this is not a plant leaf image, say:
     'Not a valid plant leaf image'
     """
 
+    image = Image.open(io.BytesIO(image_bytes))
+
     response = gemini_model.generate_content(
-        [
-            prompt,
-            {
-                "mime_type": "image/jpeg",
-                "data": image_bytes
-            }
-        ]
+        [prompt, image]
     )
 
     return response.text
@@ -221,17 +225,22 @@ def detect_with_gemini(image_bytes):
 # ✅ Prediction Route
 # =========================================================
 
-@app.route('/predict', methods=['POST'])
+@app.route("/predict", methods=["POST"])
 def predict():
 
     try:
 
-        if 'file' not in request.files:
+        # =================================================
+        # ✅ Check File
+        # =================================================
+
+        if "file" not in request.files:
+
             return jsonify({
-                'error': 'No file uploaded'
+                "error": "No file uploaded"
             }), 400
 
-        file = request.files['file']
+        file = request.files["file"]
 
         # =================================================
         # ✅ Read Image
@@ -239,7 +248,9 @@ def predict():
 
         image_bytes = file.read()
 
-        img = Image.open(io.BytesIO(image_bytes)).convert('RGB')
+        img = Image.open(
+            io.BytesIO(image_bytes)
+        ).convert("RGB")
 
         processed = preprocess_image(img)
 
@@ -248,19 +259,23 @@ def predict():
         # =================================================
 
         interpreter.set_tensor(
-            input_details[0]['index'],
+            input_details[0]["index"],
             processed
         )
 
         interpreter.invoke()
 
         prediction = interpreter.get_tensor(
-            output_details[0]['index']
+            output_details[0]["index"]
         )
 
-        predicted_class = int(np.argmax(prediction))
+        predicted_class = int(
+            np.argmax(prediction)
+        )
 
-        confidence = float(np.max(prediction))
+        confidence = float(
+            np.max(prediction)
+        )
 
         # =================================================
         # ✅ HIGH CONFIDENCE → CNN RESULT
@@ -282,9 +297,9 @@ def predict():
             )
 
             return jsonify({
-                'source': 'CNN Model',
-                'disease': disease_name,
-                'confidence': round(confidence, 4)
+                "source": "CNN Model",
+                "disease": disease_name,
+                "confidence": round(confidence, 4)
             })
 
         # =================================================
@@ -293,26 +308,45 @@ def predict():
 
         else:
 
-            gemini_result = detect_with_gemini(image_bytes)
+            try:
 
-            return jsonify({
-                'source': 'Gemini API',
-                'cnn_confidence': round(confidence, 4),
-                'result': gemini_result
-            })
+                gemini_result = detect_with_gemini(
+                    image_bytes
+                )
+
+                return jsonify({
+                    "source": "Gemini API",
+                    "cnn_confidence": round(confidence, 4),
+                    "result": gemini_result
+                })
+
+            except Exception as gemini_error:
+
+                print("❌ Gemini Error:", str(gemini_error))
+
+                return jsonify({
+                    "source": "CNN Model",
+                    "warning": "Gemini fallback failed",
+                    "disease": "Unknown Disease",
+                    "confidence": round(confidence, 4)
+                })
 
     except Exception as e:
 
         print("❌ Prediction Error:", str(e))
 
         return jsonify({
-            'error': 'Prediction failed',
-            'details': str(e)
+            "error": "Prediction failed",
+            "details": str(e)
         }), 500
 
 # =========================================================
 # ✅ Run Server
 # =========================================================
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8000)
+if __name__ == "__main__":
+
+    app.run(
+        host="0.0.0.0",
+        port=8000
+    )
