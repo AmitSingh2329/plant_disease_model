@@ -138,8 +138,7 @@ GEMINI_API_KEY = "AIzaSyBxxRwH5R2SPUuoVPgXdlUH7ibFzqPhnFc"
 genai.configure(api_key=GEMINI_API_KEY)
 
 # ✅ Stable working vision model
-gemini_model = genai.GenerativeModel("models/gemini-pro-vision")
-
+gemini_model = genai.GenerativeModel("gemini-2.0-flash")
 # =========================================================
 # ✅ Paths
 # =========================================================
