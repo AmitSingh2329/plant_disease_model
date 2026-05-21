@@ -135,8 +135,7 @@ GEMINI_API_KEY = "AIzaSyBxxRwH5R2SPUuoVPgXdlUH7ibFzqPhnFc"
 
 genai.configure(api_key=GEMINI_API_KEY)
 
-gemini_model = genai.GenerativeModel("gemini-1.5-flash-latest")
-
+gemini_model = genai.GenerativeModel("gemini-1.5-flash")
 # =========================================================
 # ✅ Paths
 # =========================================================
