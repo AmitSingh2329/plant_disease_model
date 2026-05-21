@@ -263,9 +263,18 @@ def predict():
 
         confidence = float(np.max(prediction))
 
+<<<<<<< HEAD
         # =================================================
         # ✅ HIGH CONFIDENCE → CNN RESULT
         # =================================================
+=======
+        # 🔥 IMPORTANT: Confidence threshold
+        if confidence < 0.1:
+            return jsonify({
+                'error': '⚠️ Please upload a valid plant leaf image',
+                'confidence': round(confidence, 4)
+            }), 200
+>>>>>>> ed7dbacb163bf1611e3a6f64af233894764f565b
 
         if confidence >= 0.70:
 
